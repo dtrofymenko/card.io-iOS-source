@@ -244,3 +244,27 @@ static inline CGRect aspectFit(CGSize contents, CGSize container) {
   return CGRectWithOriginAndSize(origin, contained);
 }
 
+static inline CGRect aspectFill(CGSize contents, CGSize container) {
+  // Aspect fit is not well defined when contents or container is degenerate. Rather than crashing,
+  // return a zero-ish value.
+  if(contents.height == 0 || contents.width == 0 || container.width == 0 || container.height == 0) {
+    return CGRectZero;
+  }
+
+  CGFloat contentsAspectRatio = contents.width / contents.height;
+
+  CGSize contained;
+  if (contentsAspectRatio * container.height > container.width) {
+    contained = CGSizeMake(contentsAspectRatio * container.height, container.height);
+  } else if (contentsAspectRatio * container.height < container.width) {
+    contained = CGSizeMake(container.width, container.width / contentsAspectRatio);
+  } else {
+    contained = container;
+  }
+
+  CGPoint origin = CGPointMake((container.width - contained.width) / 2.0f, (container.height - contained.height) / 2.0f);
+
+  return CGRectWithOriginAndSize(origin, contained);
+}
+
+

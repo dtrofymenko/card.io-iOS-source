@@ -30,6 +30,7 @@ typedef enum {
 - (uint)numEdgesFound;
 - (NSData *)encodedImageUsingEncoding:(FrameEncoding)encoding;
 - (UIImage *)imageWithGrayscale:(BOOL)grayscale;
+- (UIImage *)fullImage;
 + (NSString *)filenameForImageEncodedUsingEncoding:(FrameEncoding)encoding;
 
 @property(nonatomic, assign, readwrite) float focusScore;
@@ -59,6 +60,14 @@ typedef enum {
 @property(nonatomic, assign, readwrite) BOOL torchIsOn;
 
 @property(nonatomic, assign, readwrite) CardIODetectionMode detectionMode;
+
+@property (nonatomic, assign, readwrite) float minLuma;
+@property (nonatomic, assign, readwrite) float maxLuma;
+
+@property (nonatomic, assign, readwrite) NSInteger minFallbackFocusScore;
+@property (nonatomic, assign, readwrite) NSInteger minNonSuckyFocusScore;
+
+@property(nonatomic, assign, readwrite) CGRect relativeGuide;
 
 #if CARDIO_DEBUG
 @property(nonatomic, strong, readwrite) NSString *debugString;

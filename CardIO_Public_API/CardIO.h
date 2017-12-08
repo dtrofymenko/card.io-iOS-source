@@ -12,3 +12,11 @@
 #import "CardIOPaymentViewControllerDelegate.h"
 #import "CardIOUtilities.h"
 
+#import "MyCardIOView.h"
+#import "MyCardIOGuideView.h"
+#import "MyCardIOStandartGuideView.h"
+#import "MyCardIOConfiguration.h"
+#import "MyCardIOStreamConfiguration.h"
+#import "MyCardIOFrameInfo.h"
+#import "MyCardIInfo.h"
+#import "MyCardIOFrameView.h"

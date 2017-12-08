@@ -58,6 +58,10 @@
 
     _orientation = currentOrientation; // not using setters/getters, for performance
     _dmz = NULL;  // use NULL b/c non-object pointer
+    self.minLuma = kMinLuma;
+    self.maxLuma = kMaxLuma;
+    self.minFallbackFocusScore = kMinFallbackFocusScore;
+    self.minNonSuckyFocusScore = kMinNonSuckyFocusScore;
   }
   return self;
 }
@@ -84,13 +88,13 @@
   useFullImageForFocusScore = (self.detectionMode == CardIODetectionModeCardImageOnly); // when detecting, rely more on focus than on contents
   
   self.focusScore = dmz_focus_score(self.ySample.image, useFullImageForFocusScore);
-  self.focusOk = self.focusScore > kMinFallbackFocusScore;
-  self.focusSucks = self.focusScore < kMinNonSuckyFocusScore;
+  self.focusOk = self.focusScore > self.minFallbackFocusScore;
+  self.focusSucks = self.focusScore < self.minNonSuckyFocusScore;
   
   if (self.calculateBrightness) {
     self.brightnessScore = dmz_brightness_score(self.ySample.image, self.torchIsOn);
-    self.brightnessLow = self.brightnessScore < kMinLuma;
-    self.brightnessHigh = self.brightnessScore > kMaxLuma;
+    self.brightnessLow = self.brightnessScore < self.minLuma;
+    self.brightnessHigh = self.brightnessScore > self.maxLuma;
   }
 
   if(self.detectionMode == CardIODetectionModeCardImageOnly) {
@@ -129,9 +133,15 @@
   if (self.flipped) {
     frameOrientation = dmz_opposite_orientation(frameOrientation);
   }
-
-  bool foundCard = dmz_detect_edges(self.ySample.image, self.cbSample.image, self.crSample.image,
-                                    frameOrientation, &_found_edges, &_corner_points);
+  
+  dmz_relative_guide relative_guide = dmz_relative_guide();
+  relative_guide.left = (float)self.relativeGuide.origin.x;
+  relative_guide.top = (float)self.relativeGuide.origin.y;
+  relative_guide.width = (float)self.relativeGuide.size.width;
+  relative_guide.height = (float)self.relativeGuide.size.height;
+  
+  bool foundCard = dmz_detect_guided_edges(self.ySample.image, self.cbSample.image, self.crSample.image,
+                                           relative_guide, frameOrientation, &_found_edges, &_corner_points);
 
   self.foundTopEdge = (BOOL)self.found_edges.top.found;
   self.foundBottomEdge = (BOOL)self.found_edges.bottom.found;
@@ -224,6 +234,23 @@
 - (UIImage *)imageWithGrayscale:(BOOL)grayscale {
   return grayscale ? [self.cardY UIImage] : [[CardIOIplImage rgbImageWithY:self.cardY cb:self.cardCb cr:self.cardCr] UIImage];
 }
+
+- (UIImage *)fullImage {
+  return [self imageFromSampleBuffer:self.buffer];
+}
+
+#define clamp(a) (a>255?255:(a<0?0:a))
+
+- (UIImage *)imageFromSampleBuffer:(CMSampleBufferRef)sampleBuffer {
+  CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+  CIImage *ciimage = [[CIImage alloc] initWithCVImageBuffer:imageBuffer];
+  CIContext* context = [[CIContext alloc] initWithOptions:nil];
+  CGImageRef cgimage = [context createCGImage:ciimage fromRect:ciimage.extent];
+  UIImage *uiimage = [[UIImage alloc] initWithCGImage:cgimage scale:1.0 orientation:UIImageOrientationRight];
+  CGImageRelease(cgimage);
+  return uiimage;
+}
+
 
 #elif SIMULATE_CAMERA
 
