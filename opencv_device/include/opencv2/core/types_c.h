@@ -966,6 +966,29 @@ CV_INLINE  CvRect  cvRect( int x, int y, int width, int height )
     return r;
 }
 
+CV_INLINE  CvRect  cvRectf( float x, float y, float width, float height )
+{
+    CvRect r;
+
+    r.x = (int)roundf(x);
+    r.y = (int)roundf(y);
+    r.width = (int)roundf(width);
+    r.height = (int)roundf(height);
+
+    return r;
+}
+
+CV_INLINE  CvRect  cvRectd( double x, double y, double width, double height )
+{
+    CvRect r;
+
+    r.x = (int)round(x);
+    r.y = (int)round(y);
+    r.width = (int)round(width);
+    r.height = (int)round(height);
+
+    return r;
+}
 
 CV_INLINE  IplROI  cvRectToROI( CvRect rect, int coi )
 {

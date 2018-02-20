@@ -87,12 +87,17 @@
   BOOL useFullImageForFocusScore = NO;
   useFullImageForFocusScore = (self.detectionMode == CardIODetectionModeCardImageOnly); // when detecting, rely more on focus than on contents
   
-  self.focusScore = dmz_focus_score(self.ySample.image, useFullImageForFocusScore);
+  self.focusScore = dmz_focus_score_relative(self.ySample.image, useFullImageForFocusScore, [self dmz_relative_guide]);
   self.focusOk = self.focusScore > self.minFallbackFocusScore;
+  if (self.focusOk) {
+    CardIOLog(@"focus OK %f", self.focusScore);
+  } else {
+    CardIOLog(@"focus not OK %f", self.focusScore);
+  }
   self.focusSucks = self.focusScore < self.minNonSuckyFocusScore;
   
   if (self.calculateBrightness) {
-    self.brightnessScore = dmz_brightness_score(self.ySample.image, self.torchIsOn);
+    self.brightnessScore = dmz_brightness_score_relative(self.ySample.image, self.torchIsOn, [self dmz_relative_guide]);
     self.brightnessLow = self.brightnessScore < self.minLuma;
     self.brightnessHigh = self.brightnessScore > self.maxLuma;
   }
@@ -126,6 +131,15 @@
   [self detectCardInSamplesWithFlip:NO];
 }
 
+- (dmz_relative_guide)dmz_relative_guide {
+  dmz_relative_guide relative_guide = dmz_relative_guide();
+  relative_guide.left = (float)self.relativeGuide.origin.x;
+  relative_guide.top = (float)self.relativeGuide.origin.y;
+  relative_guide.width = (float)self.relativeGuide.size.width;
+  relative_guide.height = (float)self.relativeGuide.size.height;
+  return relative_guide;
+}
+
 - (void)detectCardInSamplesWithFlip:(BOOL)shouldFlip {
   self.flipped = shouldFlip;
 
@@ -134,12 +148,7 @@
     frameOrientation = dmz_opposite_orientation(frameOrientation);
   }
   
-  dmz_relative_guide relative_guide = dmz_relative_guide();
-  relative_guide.left = (float)self.relativeGuide.origin.x;
-  relative_guide.top = (float)self.relativeGuide.origin.y;
-  relative_guide.width = (float)self.relativeGuide.size.width;
-  relative_guide.height = (float)self.relativeGuide.size.height;
-  
+  dmz_relative_guide relative_guide = [self dmz_relative_guide];
   bool foundCard = dmz_detect_guided_edges(self.ySample.image, self.cbSample.image, self.crSample.image,
                                            relative_guide, frameOrientation, &_found_edges, &_corner_points);
 
